@@ -615,3 +615,894 @@ constructor(private fb: FormBuilder) { }
     <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - FormBuilder</figcaption>
   </figure>
 </p>
+
+8 - Implementing simple Validation
+=====================
+For common use cases (validation purpose) Reactive forms uses set of `validators functions in class file only`, not in html/view/template
+
+8.1 Steps to apply reactive forms validations:
+---------------------
+1. Apply validation rules to form control - use `validators class`
+    - import Validators Class - `import { FormBuilder, Validators } from '@angular/forms';`
+    - add validators to form control item -  `userName: ['Dinanath', Validators.required],`
+2. Provide a visual feedback for validations
+    - use class binding to show red border when form control/field is invalid - `<input [class.is-invalid]="registrationForm.get('userName').invalid && registrationForm.get('userName').touched" formControlName="userName" type="text" class="form-control">`
+3. Display a appropriate error message for validation
+    - `<small class="text-danger" [class.d-none]="registrationForm.get('userName').valid ||                                                    registrationForm.get('userName').untouched">* Name is required</small>`
+
+> **Syntax & Example**: app.component.ts
+```typescript
+import { FormBuilder, Validators } from '@angular/forms';
+
+// create a FormBuilder instance
+registrationForm = this.fb.group({
+  userName: ['Dinanath', Validators.required],
+  password: [''],
+  confirmPassword: [''],
+  address: this.fb.group({
+    city: ['Mumbai'],
+    state: ['Maharashtra'],
+    postalcode: [400001]
+  })
+})
+```
+
+> **Syntax & Example**: app.component.html
+```html
+<!-- user name -->
+<div class="form-group">
+  <label for="">Username:</label>
+  <!-- class binding to show red border when form control/field is invalid -->
+  <input [class.is-invalid]="registrationForm.get('userName').invalid && registrationForm.get('userName').touched" formControlName="userName" type="text" class="form-control">
+  <!-- single error with a class binding -->
+  <small class="text-danger" [class.d-none]="registrationForm.get('userName').valid ||                                                    registrationForm.get('userName').untouched">* Name is required</small>
+</div>
+```
+
+8.2 Multiple validation rules:
+---------------------
+- To apply more than one validation rules, convert Validators to an array - ` userName: ['Dinanath', [Validators.required, Validators.minLength(3)]],`
+- With `*ngIf` directive show conditioinal error messages
+
+#### Best practice to access formControl with Getter (keep the code short & simple)
+- Create `getter method` to return individual form control and use it in HTML file
+
+> **Syntax & Example**: app.component.ts
+```typescript
+// getter for userName control/field to keep code short in html file
+get userNameControl(){
+    return this.registrationForm.get('userName');
+}
+
+// create a FormBuilder instance
+registrationForm = this.fb.group({
+  userName: ['Dinanath', [Validators.required, Validators.minLength(3)]],
+  password: [''],
+  confirmPassword: [''],
+  address: this.fb.group({
+      city: ['Mumbai'],
+      state: ['Maharashtra'],
+      postalcode: [400001]
+  })
+})
+```
+
+> **Syntax & Example**: app.component.html
+```html
+<!-- user name -->
+<div class="form-group">
+  <label for="">Username:</label>
+  <!-- class binding to show red border when form control/field is invalid -->
+  <!-- use getter method for userName control/field to keep code short in html file -->
+  <input [class.is-invalid]="userNameControl.invalid && 
+                          userNameControl.touched" formControlName="userName" type="text" class="form-control">
+  <!-- single error with a class binding -->
+  <!-- <small class="text-danger" [class.d-none]="userNameControl.valid ||                                                    userNameControl.untouched">* Name is required</small> -->
+
+  <!-- group or multiple error messages : error property -->
+  <div *ngIf="userNameControl.invalid && userNameControl.touched">
+      <small class="text-danger" *ngIf="userNameControl.errors?.required">* Name is required</small>
+      <small class="text-danger" *ngIf="userNameControl.errors?.minlength">* Name must be 3 characters</small>
+  </div>
+</div>
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/08-01-01-validators-required.png" alt="Reactive Form - Validators.required" title="Reactive Form - Validators.required" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - Validators.required</figcaption>
+  </figure>
+</p>
+
+<hr/>
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/08-01-02-validators-required-text-error.png" alt="Reactive Form - Validators.required - show error text" title="Reactive Form - Validators.required - show error text" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - Validators.required - show error text</figcaption>
+  </figure>
+</p>
+
+<hr/>
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/08-01-03-validators-minlength.png" alt="Reactive Form - Validators.minlength" title="Reactive Form - Validators.minlength" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - Validators.minlength</figcaption>
+  </figure>
+</p>
+
+<hr/>
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/08-01-04-validators-minlength-error.png" alt="Reactive Form - Validators.minlength - show error text" title="Reactive Form - Validators.minlength - show error text" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - Validators.minlength - show error text</figcaption>
+  </figure>
+</p>
+
+9 - Custom Validation
+=====================
+- Some times `in-built validators` not match with the exact scenario/requirements
+- We can create custom validators for such scenarios like some keywords (spam words) not allowed in user name field, etc.
+- Usually custom validators are used through-out the application so its advisable to create custom validators (function class) in an external class file and share
+- create folder: `'app/shared/validators'` and inside this folder create a file named: `'user-name.validator.ts'`
+  - create a validator function
+- Lets use/import newly created custom validator `'user-name.validator.ts'` in `app.component.ts`
+  - `import { userNameValidator } from './shared/validators/user-name.validators';` <br/>
+    ` userName: ['Dinanath', [Validators.required, Validators.minLength(3), userNameValidator]],`
+- Add an error message realted to custom validator in view 
+    - ` <small class="text-danger" *ngIf="userNameControl.errors?.validateUserNameError">* '{{userNameControl.errors?.validateUserNameError.value}}' user name not allowed</small>`
+
+> **Syntax & Example**: user-name.validators.ts
+```typescript
+import { AbstractControl } from "@angular/forms";
+
+// create a validator function to avoid junk/spam names like `admin`
+// it returns `string message` or null
+export function userNameValidator(control: AbstractControl): { [key: string]: any } | null {
+    const isUserNameCorrect = /junk/.test(control.value);
+    return isUserNameCorrect ? { 'validateUserName': { value: control.value } } : null;
+}
+```
+
+> **Syntax & Example**: app.component.ts
+```typescript
+import { userNameValidator } from './shared/validators/user-name.validators';
+
+// create a FormBuilder instance
+registrationForm = this.fb.group({
+    userName: ['Dinanath', [Validators.required, Validators.minLength(3), userNameValidator]],
+    password: [''],
+    confirmPassword: [''],
+    address: this.fb.group({
+      city: ['Mumbai'],
+      state: ['Maharashtra'],
+      postalcode: [400001]
+    })
+})
+```
+
+> **Syntax & Example**: app.component.html
+```html
+<!-- group or multiple error messages : error property -->
+<div *ngIf="userNameControl.invalid && userNameControl.touched">
+    <small class="text-danger" *ngIf="userNameControl.errors?.required">* Name is required</small>
+    <small class="text-danger" *ngIf="userNameControl.errors?.minlength">* Name must be 3 characters</small>
+    <small class="text-danger" *ngIf="userNameControl.errors?.validateUserNameError">* '{{userNameControl.errors?.validateUserNameError.value}}' user name not allowed</small>
+</div>
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/09-01-01-custom-validator-project-structure.png" alt="Reactive Form - custom validators" title="Reactive Form - custom validators" width="500" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - custom validators</figcaption>
+  </figure>
+</p>
+
+<hr/>
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/09-01-02-custom-validator-error.png" alt="Reactive Form - custom validators - error text" title="Reactive Form - custom validators - error text" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - custom validators - error text</figcaption>
+  </figure>
+</p>
+
+10 - Cross Field Validation
+=====================
+- Sometimes we need to validate values across multiple fields like 'password & confirm password', 'card number', 'verification of pin number' etc.
+- Lets create a custom validator to match 'password & confirm password' fields
+- In folder: `'app/shared/validators'` create a file named: `'password.validator.ts'`
+- Apply custom password validator to formgroup-the main form (not to password formControl)
+
+> **Syntax & Example**: password.validator.ts
+```typescript
+import { AbstractControl } from "@angular/forms";
+
+// create a validator function to match password and confirm password field
+// it returns `boolean` or null
+export function passwordValidator(control: AbstractControl): { [key: string]: boolean } | null {
+    const passwordControl = control.get('password');
+    const confirmPasswordControl = control.get('confirmPassword');
+
+    if (passwordControl.pristine && confirmPasswordControl.pristine || passwordControl.untouched && confirmPasswordControl.untouched) {
+      return null;
+    }
+
+    return passwordControl && confirmPasswordControl && passwordControl.value != confirmPasswordControl.value ? { 'misMatchError': true } : null;
+}
+```
+
+> **Syntax & Example**: app.component.ts
+```typescript
+import { passwordValidator } from './shared/validators/password.validator';
+
+// create a FormBuilder instance
+registrationForm = this.fb.group({
+    userName: ['Dinanath', [Validators.required, Validators.minLength(3), userNameValidator]],
+    password: [''],
+    confirmPassword: [''],
+    address: this.fb.group({
+      city: ['Mumbai'],
+      state: ['Maharashtra'],
+      postalcode: [400001]
+    })
+}, {validator: passwordValidator})
+```
+
+> **Syntax & Example**: app.component.html
+```html
+<!-- confirm password -->
+<div class="form-group">
+    <label for="">Confirm Password:</label>
+    
+    <!-- class binding to show red border when form control/field is invalid -->
+    <input [class.is-invalid]="registrationForm.errors?.passwordMisMatchError" formControlName="confirmPassword" type="password" class="form-control">
+    
+    <!-- single error with a class binding -->
+    <small class="text-danger" *ngIf="registrationForm.errors?.passwordMisMatchError">Confirm Password not matched!</small>
+</div>
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/10-01-01-custom-cross-field-validator-error.png" alt="Reactive Form - custom validators  - cross field - error text" title="Reactive Form - custom validators - cross field - error text" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - custom validators - cross field - error text</figcaption>
+  </figure>
+</p>
+
+11 - Conditional Dynamic Validation
+=====================
+- Sometimes we need to apply dynamic validation like after certain action/thing/condition, validations should come in to the picture
+- Example: After subscribe checkbox selection -> email field mendatory, 
+- Create `email text field` and `subscption checkbox field` in form
+- We need to track value of checkbox and conditionaly set status of email field
+  - `valueChanges` property helps to track the current value of any controls as a observables
+  - `setValidators` methods - set desired validators to formControl/field
+  - `clearValidators` methods - clears validators from formControl/field
+- Finally we need to invoke/call `updateValueAndValidity` method to reflect latest status
+
+> **Syntax & Example**: app.component.html
+```html
+<!-- email -->
+<div class="form-group">
+    <label for="">Email:</label>
+
+    <!-- class binding to show red border when form control/field is invalid -->
+    <input [class.is-invalid]="emailControl.invalid && 
+    emailControl.touched" formControlName="email" type="text" class="form-control">
+    
+    <!-- single error with a class binding -->
+    <small class="text-danger" [class.d-none]="emailControl.valid || emailControl.untouched">* Email is required</small>
+</div>
+
+<!-- subscribe checkbox -->
+<div class="form-check mb-3">
+    <input formControlName="subscribe" type="checkbox" class="form-check-input">
+    <label for="" class="form-check-label">Subscribe/Send me promotion offers</label>
+</div>
+```
+
+> **Syntax & Example**: app.component.ts
+```typescript
+import { Component, OnInit } from '@angular/core';
+// import { FormGroup, FormControl } from '@angular/forms';
+import { FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { userNameValidator } from './shared/validators/user-name.validators';
+import { passwordValidator } from './shared/validators/password.validator';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+
+export class AppComponent implements OnInit {
+
+  registrationForm: FormGroup;
+
+  // getter for userName field to keep code short in html file
+  get userNameControl(){
+    return this.registrationForm.get('userName');
+  }
+
+  // getter for email control/field to keep code short in html file
+  get emailControl(){
+    return this.registrationForm.get('email');
+  }
+
+  constructor(private fb: FormBuilder) { }
+
+  ngOnInit() {
+    // create a FormBuilder instance
+    this.registrationForm = this.fb.group({
+      userName: ['Dinanath', [Validators.required, Validators.minLength(3), userNameValidator]],
+      email:[''],
+      subscribe:[false],
+      password: [''],
+      confirmPassword: [''],
+      address: this.fb.group({
+        city: ['Mumbai'],
+        state: ['Maharashtra'],
+        postalcode: [400001]
+      })
+    }, {validator: passwordValidator});
+
+    // subscribe checkbox
+    this.registrationForm.get('subscribe').valueChanges
+      .subscribe(subscribeCheckedValue => {
+        const email =  this.registrationForm.get('email');
+
+        // email field set/unset `required` validators
+        if(subscribeCheckedValue){
+          email.setValidators(Validators.required);
+        } else {
+          email.clearValidators();
+        }
+
+        // to reflect latest correct status
+        email.updateValueAndValidity();
+
+      })
+  }
+
+  loadApiDataSetValue() {
+    console.log('loadApiDataSetValue ');
+
+    this.registrationForm.setValue({
+      userName: 'Angular',
+      password: 'Angular6',
+      confirmPassword: 'Angular6',
+
+      address: {
+        city: 'Google',
+        state: 'Google Corp',
+        postalcode: 12345,
+      }
+    })
+  }
+
+  loadApiDataPatchValue() {
+    console.log('loadApiDataPatchValue ');
+
+    this.registrationForm.patchValue({
+      // userName: 'React',
+      // password: 'React2',
+      // confirmPassword: 'React2',
+
+      address: {
+        city: 'Facebook',
+        state: 'Facebook Corp',
+        postalcode: 678901,
+      }
+    })
+  }
+
+}
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/11-01-01-conditional-validator-error.png" alt="Reactive Form - custom validators - conditional/hierarchy field - error text" title="Reactive Form - custom validators - conditional/hierarchy field - error text" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - custom validators - conditional/hierarchy field - error text</figcaption>
+  </figure>
+</p>
+
+<hr/>
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/11-01-02-conditional-validator-success.png" alt="Reactive Form - custom validators - conditional/hierarchy field - success" title="Reactive Form - custom validators - conditional/hierarchy field - success" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - custom validators - conditional/hierarchy field - success</figcaption>
+  </figure>
+</p>
+
+
+12 - Dynamic Form Controls
+======================
+- In some scenarios, we need to add fields/records on the fly like click on `Add Patient` button to add new patients record and so on, provide alternate email, contact details, etc.
+- The method of adding new fields at run-time keeps form concise and expand only when necessary
+- `FormArray` class helps to maintain and duplicate dynamic list of controls
+    - import { FormBuilder, Validators, FormGroup, FormArray } from '@angular/forms';
+- Define `FormArray` in 'formModel'
+    - alternateEmailAddresses:this.fb.array([])
+- Create `getter method` to return individual form control and use/access easily it in HTML file
+- Create a method to dynamically insert controls to FormArray
+- In view create a button `Add alternate Email` to invoke a method to add/push dynamic controls
+
+> **Syntax & Example**: app.component.ts
+```typescript
+import { Component, OnInit } from '@angular/core';
+// import { FormGroup, FormControl } from '@angular/forms';
+import { FormBuilder, Validators, FormGroup, FormArray } from '@angular/forms';
+import { userNameValidator } from './shared/validators/user-name.validators';
+import { passwordValidator } from './shared/validators/password.validator';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+
+export class AppComponent implements OnInit {
+
+  registrationForm: FormGroup;
+
+  // getter for userName field to keep code short in html file
+  get userNameControl(){
+    return this.registrationForm.get('userName');
+  }
+
+  // getter for email control/field to keep code short in html file
+  get emailControl(){
+    return this.registrationForm.get('email');
+  }
+
+  // getter for email control/field to keep code short in html file
+  get alternateEmailAddressesControl(){
+    return this.registrationForm.get('alternateEmailAddresses') as FormArray
+  }
+
+  addAlternateEmailAddresses() {
+    return this.alternateEmailAddressesControl.push(this.fb.control(''));
+  }
+
+  constructor(private fb: FormBuilder) { }
+
+  ngOnInit() {
+    // create a FormBuilder instance
+    this.registrationForm = this.fb.group({
+      userName: ['Dinanath', [Validators.required, Validators.minLength(3), userNameValidator]],
+      email:[''],
+      subscribe:[false],
+      password: [''],
+      confirmPassword: [''],
+      address: this.fb.group({
+        city: ['Mumbai'],
+        state: ['Maharashtra'],
+        postalcode: [400001]
+      }),
+      alternateEmailAddresses:this.fb.array([])
+    }, {validator: passwordValidator});
+
+    // subscribe checkbox
+    this.registrationForm.get('subscribe').valueChanges
+      .subscribe(subscribeCheckedValue => {
+        const email =  this.registrationForm.get('email');
+
+        // email field set/unset `required` validators
+        if(subscribeCheckedValue){
+          email.setValidators(Validators.required);
+        } else {
+          email.clearValidators();
+        }
+
+        // to reflect latest correct status
+        email.updateValueAndValidity();
+
+      })
+  }
+
+  loadApiDataSetValue() {
+    console.log('loadApiDataSetValue ');
+
+    this.registrationForm.setValue({
+      userName: 'Angular',
+      password: 'Angular6',
+      confirmPassword: 'Angular6',
+
+      address: {
+        city: 'Google',
+        state: 'Google Corp',
+        postalcode: 12345,
+      }
+    })
+  }
+
+  loadApiDataPatchValue() {
+    console.log('loadApiDataPatchValue ');
+
+    this.registrationForm.patchValue({
+      // userName: 'React',
+      // password: 'React2',
+      // confirmPassword: 'React2',
+
+      address: {
+        city: 'Facebook',
+        state: 'Facebook Corp',
+        postalcode: 678901,
+      }
+    })
+  }
+
+}
+```
+
+> **Syntax & Example**: app.component.html
+```html
+<!-- email -->
+<div class="form-group">
+  <label for="">Email:</label>
+
+  <button type="button "class="btn btn-secondary btn-sm m-2" (click)="addAlternateEmailAddresses(); $event.preventDefault()">Add alternet Email</button>
+
+  <!-- class binding to show red border when form control/field is invalid -->
+  <input [class.is-invalid]="emailControl.invalid && 
+  emailControl.touched" formControlName="email" type="text" class="form-control">
+  
+  <!-- single error with a class binding -->
+  <small class="text-danger" [class.d-none]="emailControl.valid || emailControl.untouched">* Email is required</small>
+
+  <!-- dynamic emaiil fields to add-->
+  <div formArrayName="alternateEmailAddresses" *ngFor="let email of alternateEmailAddressesControl.controls; let i=index">
+  <input type="text" class="form-control my-2" [formControlName]="i">
+  </div>
+
+</div>
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/12-01-01-dynamic-form-control.png" alt="Reactive Form - add dynamic email field/control" title="Reactive Form - add dynamic email field/control" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - add dynamic email field/control</figcaption>
+  </figure>
+</p>
+
+
+13 - Submitting Form Data
+======================
+1. Use `'novalidate'` attribute to form tag to avoid/prevent browser `default validations` when will click on 'SUBMIT' button.
+2. Bind `'ngSubmit'` event to the form tag which will trigger on 'SUBMIT' button
+    - ```<form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">```
+3. Define `onSubmit()` event handler in `app.component.ts` class file
+
+> **Syntax & Example**: app.component.html
+```html
+<form [formGroup]="registrationForm" novalidate (ngSubmit)="onSubmit()">
+```
+
+> **Syntax & Example**: app.component.ts
+```typescript
+// handler for submit button
+onSubmit() {
+  console.log('submit button clicked');
+  console.log(this.registrationForm.value);
+}
+```
+
+4. To send data to the server we need to create/use `'registration service'` with angular CLI by using the command: `ng generate service registration` or `ng g s registration`  
+    - `registration.service.ts:`
+      - Import HttpClient module: import { HttpClient } from '@angular/common/http';
+      - Invoke HttpClient in constructor as a local variable / Dependency injection:  <br/>
+      constructor(public _httpClient:HttpClient) { }
+5. `app.module.ts: `
+    - import HttpClientModule: import { HttpClientModule } from '@angular/common/http'; 
+    - add to the imports array: <br/>
+    imports: [
+      BrowserModule, 
+      FormsModule,
+      HttpClientModule
+    ],
+6. `registration.service.ts:` 
+    - // create a variable which hold path to which will post the date <br/>
+     _url = 'http://localhost:3000/enroll';
+    - // create a method called register which will post the data to server
+    register(userData) {
+        return this._httpClient.post`<any>`(this._url, userData);
+    }
+7. `app.component.ts: `
+    - The Post request will return response as an `observable`, so we need to subscribe to observables in app.component.ts
+    - Import registration service: import { RegistrationService } from './registration.service';
+    - Invoke in constructor as a local variable / Dependency injection: <br/> 
+    constructor(public registrationService:RegistrationService) { }
+    - On submit button clicked i.e. in onSubmit() method subscribe to the observables: <br/> 
+    // handler for submit button
+    onSubmit() {
+      console.log('submit button clicked');
+      console.log(this.registrationForm.value);
+
+      this.registrationService.register(this.registrationForm.value)
+      .subscribe(
+        response => console.log('Success', response),
+        error => console.log('Error', error)
+      )
+    }
+
+> **Syntax & Example**: app.module.ts
+```typescript
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http'; 
+
+import { AppComponent } from './app.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FormBuilderComponent } from './components/form-builder/form-builder.component';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    FormBuilderComponent
+  ],
+  imports: [
+    BrowserModule, 
+    ReactiveFormsModule,
+    HttpClientModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+
+```
+
+> **Syntax & Example**: registration.service.ts
+```typescript
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+
+// to catch error
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class RegistrationService {
+  // create a variable which holds the path to which will post the date
+  _url = 'http://localhost:3000/enroll';
+
+  constructor(public _httpClient: HttpClient ) { }
+
+  // create a method called enroll which will post the data to server
+  register(userData) {
+  return this._httpClient.post<any>(this._url, userData)
+    .pipe(catchError(this.errorHandler)) //catch errors
+  }
+
+  errorHandler(error: HttpErrorResponse) {
+    return throwError(error);
+  }
+}
+```
+
+> **Syntax & Example**: app.component.ts
+```typescript
+import { Component, OnInit } from '@angular/core';
+// import { FormGroup, FormControl } from '@angular/forms';
+import { FormBuilder, Validators, FormGroup, FormArray } from '@angular/forms';
+import { userNameValidator } from './shared/validators/user-name.validators';
+import { passwordValidator } from './shared/validators/password.validator';
+import { RegistrationService } from './registration.service';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+
+export class AppComponent implements OnInit {
+
+  registrationForm: FormGroup;
+
+  // getter for userName field to keep code short in html file
+  get userNameControl() {
+    return this.registrationForm.get('userName');
+  }
+
+  // getter for email control/field to keep code short in html file
+  get emailControl() {
+    return this.registrationForm.get('email');
+  }
+
+  // getter for email control/field to keep code short in html file
+  get alternateEmailAddressesControl() {
+    return this.registrationForm.get('alternateEmailAddresses') as FormArray
+  }
+
+  addAlternateEmailAddresses() {
+    return this.alternateEmailAddressesControl.push(this.fb.control(''));
+  }
+
+  // create a new data member/property to bind to the view
+  errorMessage = '';
+
+  // to check form submitted or not
+  isFormSubmitted = false;
+
+  constructor(private fb: FormBuilder, public registrationService: RegistrationService) { }
+
+  ngOnInit() {
+  // create a FormBuilder instance
+  this.registrationForm = this.fb.group({
+    userName: ['Dinanath', [Validators.required, Validators.minLength(3), userNameValidator]],
+    email: [''],
+    subscribe: [false],
+    password: [''],
+    confirmPassword: [''],
+    address: this.fb.group({
+    city: ['Mumbai'],
+    state: ['Maharashtra'],
+    postalcode: [400001]
+    }),
+    alternateEmailAddresses: this.fb.array([])
+  }, { validator: passwordValidator });
+
+  // subscribe checkbox
+  this.registrationForm.get('subscribe').valueChanges
+    .subscribe(subscribeCheckedValue => {
+      const email = this.registrationForm.get('email');
+
+      // email field set/unset `required` validators
+      if (subscribeCheckedValue) {
+        email.setValidators(Validators.required);
+      } else {
+        email.clearValidators();
+      }
+
+      // to reflect latest correct status
+      email.updateValueAndValidity();
+
+    })
+  }
+
+  loadApiDataSetValue() {
+  console.log('loadApiDataSetValue ');
+
+    this.registrationForm.setValue({
+      userName: 'Angular',
+      password: 'Angular6',
+      confirmPassword: 'Angular6',
+
+      address: {
+      city: 'Google',
+      state: 'Google Corp',
+      postalcode: 12345,
+      }
+    })
+  }
+
+  loadApiDataPatchValue() {
+    console.log('loadApiDataPatchValue ');
+
+    this.registrationForm.patchValue({
+      // userName: 'React',
+      // password: 'React2',
+      // confirmPassword: 'React2',
+
+      address: {
+        city: 'Facebook',
+        state: 'Facebook Corp',
+        postalcode: 678901,
+      }
+    })
+  }
+
+  // handler for submit button
+  onSubmit() {
+    console.log('submit button clicked');
+    console.log(this.registrationForm.value);
+    this. isFormSubmitted = true;
+    this.registrationService.register(this.registrationForm.value)
+    .subscribe(
+      response => console.log('Success', response),
+      // error => console.log('Error', error)
+
+      // store error in data member / property to bind to the view
+      error => this.errorMessage = error.statusText
+    )
+  }
+}
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/13-01-01-submit-form-data.png" alt="Reactive Form - Submit Form data" title="Reactive Form - Submit Form data" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - Submit Form data</figcaption>
+  </figure>
+</p>
+
+14 - Express Server to Receive Form Data
+=====================
+1. At the root, besides the angular application folder create a new siblings folder named `'server'` which consists of server-side code
+2. Run the command: `npm init --yes` to create a `package.json` also bypass-surpass the questions with default answers (without giving answers to questions)
+3. Install express and other dependencies with the command: <br/>
+    `npm install --save express body-parser cors` <br/>
+```
+"dependencies": {
+    "body-parser": "^1.18.3", - middleware to handle form data
+    "cors": "^2.8.4", - helps to make request through multiple ports/servers - cross origin resource sharing
+    "express": "^4.16.3" - web server
+}
+```
+
+4. Inside a `server` folder create a new file named `'server.js'`
+5. at command prompt/terminal run command: `node server` - will get output in terminal as 'Server running on localhost port:  3000'
+6. in browser type path: `'http://localhost:3000/'` - output - 'Hello from the server!'
+7. add an endpoint in server.js to which angular application will post data
+// add endpoint
+app.post('/enroll', function(req,res){
+    // req.body - contains user data send by the angular
+    console.log(req.body);
+    // send response
+    res.status(200).send({'message': 'Data received'});
+})
+8. insert/add endpoint path to angular url variable in 'enrollment.service.ts'
+    _url = 'http://localhost:3000/enroll';
+9. restart the node server by command: `node server`
+10. In angular application click on the submit button and check `inspect element` console as well as node console will get the message and user data as an output. for better usability its advisable to hide actual form/hide submit button / disable submit button etc. to avoid the extra click on submit button.
+
+> **Syntax & Example**: server.ts
+```typescript
+// 1. imports/requires the packages
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+// port
+const PORT = 3000;
+
+const app = express();
+
+// handle the json data
+app.use(bodyParser.json());
+
+app.use(cors());
+
+// test/check get request
+app.get('/',function(req, res){
+    res.send('Hello from server!');
+})
+
+// add endpoint
+app.post('/enroll', function(req,res){
+    // req.body - contains user data send by the angular
+    console.log(req.body);
+    // send response
+    res.status(200).send({'message': 'Data received'});
+
+    // to see errors 
+    // res.status(401).send({'message': 'Data received'});
+})
+
+// listen to request
+app.listen(PORT, function(){
+    console.log('Server running on localhost port: ', PORT);
+})
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/14-01-01-form-submit-node.png" alt="Reactive Form - Submit Form data with Node Server" title="Reactive Form - Submit Form data with Node Server" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - Submit Form data with Node Server</figcaption>
+  </figure>
+</p>
+
+<hr/>
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/14-01-02-form-node-response.png" alt="Reactive Form - Submit Form data with Node Server Response" title="Reactive Form - Submit Form data with Node Server Response" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - Submit Form data with Node Server Response</figcaption>
+  </figure>
+</p>
