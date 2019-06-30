@@ -116,3 +116,502 @@ Working with existing/cloned/copied Angular App
 
 </html>
 ```
+
+3 - Adding Form Markup-Template HTML
+=====================
+3.1. Create an enrollment form with bootstrap classes: 
+--------------------- 
+- In file `app.component.html` create a registration form
+  1. Use bootstrap classes like `form-group` and `form-control` class with div and input field respectively to create form fields with standard look and feel
+  2. Create a user-name and email `input fields`
+  3. Create a password and confirm `password fields`
+  4. Create a submit button named `Register`
+
+> **Syntax & Example**: app.component.html
+```html
+<div class="container-fluid mb-5">
+  <h1>Registration Form</h1>
+  <hr />
+
+  <form>
+
+    <!-- user name -->
+    <div class="form-group">
+      <label for="">Username:</label>
+      <input type="text" class="form-control">
+    </div>
+
+      <!-- password -->
+    <div class="form-group">
+      <label for="">Password:</label>
+      <input type="password" class="form-control">
+    </div>
+    
+    <!-- confirm password -->
+    <div class="form-group">
+      <label for="">Confirm Password:</label>
+      <input type="password" class="form-control">
+    </div>
+
+    <!-- register button -->
+    <button class="btn btn-primary" type="submit">Register</button>
+
+  </form>
+
+</div>
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/03-01-01-form.png" alt="Bootstrap Registration Form" title="Bootstrap Registration Form" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Bootstrap Registration Form</figcaption>
+  </figure>
+</p>
+
+4 - Creating the Form Model
+=====================
+To work with reactive/dynamic forms we need to import `'ReactiveFormsModule'` which provides bunch of classes/directives/utilities `(FormGroup & FormControl)` necessary to build reactive/dynamic 
+
+4.1. 3 steps involved in creating reactive form:
+---------------------
+1. Define HTML `<form>` in component template/view/html file
+2. Define component model in component class/.ts file `registrationForm = new FormGroup() `
+3. Use directives provided by reactive forms module to associate the model with view `<form [formGroup]="registrationForm">` and  `<input formControlName="userName">,  <input formControlName="password">`
+
+#### Lets follow belows steps to achieve reactive forms 3 main steps:
+1. We have already added html form `app.component.html` in last step
+2. Now in `app.module.ts`:
+    - import { ReactiveFormsModule } from '@angular/forms'; <br/>
+    - also add to imports: [ ReactiveFormsModule ]
+3. `FormGroup` and `FormControl` are two important building blocks classes for reactive/dynamic forms
+    - In Reactive forms, the form is represented by `model in component class`, FormGroup and FormControl classes used to make that model
+    - `FormGroup` represents whole/entire form ( `form` is instance of `FormGroup` class ) 
+    - `FormControl` represents each form field ( `form fields` are instance of `FormControl` class )
+    - `FormBuilder` handle form control creation, dynamic/run time field/FormControl creation
+    - `Validators` helps to setup validation on each form control
+
+> **Syntax & Example**: app.module.ts
+```typescript
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+
+import { AppComponent } from './app.component';
+import { ReactiveFormsModule } from '@angular/forms';
+
+@NgModule({
+  declarations: [
+    AppComponent,
+  ],
+  imports: [
+    BrowserModule, 
+    ReactiveFormsModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
+```
+
+> **Syntax & Example**: app.component.ts
+```typescript
+import { Component } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+
+export class AppComponent {
+
+  // create a formgroup instance
+  registrationForm = new FormGroup({
+
+    // details of objects/controls present in html
+    userName: new FormControl('Dinanath'), // defult value enter in bracket with quotes
+    password: new FormControl(''),
+    confirmPassword: new FormControl(''),
+
+  });
+
+}
+```
+
+> **Syntax & Example**: app.component.html
+```html
+<div class="container-fluid mb-5">
+  <h1>Registration Form</h1>
+  <hr />
+
+  {{ registrationForm.value | json }}
+
+  <hr />
+
+  <!-- associate the model with view -->
+  <form [formGroup]="registrationForm">
+
+    <!-- user name -->
+    <div class="form-group">
+        <label for="">Username:</label>
+        <input formControlName="userName" type="text" class="form-control">
+    </div>
+
+    <!-- password -->
+    <div class="form-group">
+        <label for="">Password:</label>
+        <input formControlName="password" type="password" class="form-control">
+    </div>
+
+    <!-- confirm password -->
+    <div class="form-group">
+        <label for="">Confirm Password:</label>
+        <input formControlName="confirmPassword" type="password" class="form-control">
+    </div>
+
+    <!-- register button -->
+    <button class="btn btn-primary" type="submit">Register</button>
+
+  </form>
+
+</div>
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/04-01-01-form-value-object.png" alt="Form Model, FormControl/FormGroup - defualt values" title="Form Model, FormControl/FormGroup - defualt values" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Form Model, FormControl/FormGroup - defualt values</figcaption>
+  </figure>
+</p>
+
+<hr/>
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/04-01-02-form-value-object.png" alt="Form Model, FormControl/FormGroup - updated values" title="Form Model, FormControl/FormGroup - updated values" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Form Model, FormControl/FormGroup - updated values</figcaption>
+  </figure>
+</p>
+
+5 - Nesting/Nested Form Groups 
+=====================
+- Inside the main form i.e. FormGroup, We can create a other FormGroup and store smaller object properties/FormControl 
+    - create `'address'` a new FormGroup with 'street, landmark, road, postal-code' as a child FormControl
+    - Under `'user details'` FormGroup create a username, gender, age, etc. as a child FormControl
+- In larger/complex forms such approach of creating Nested Form Groups will help to easily manage smaller chunks/sections
+
+> **Syntax & Example**: app.component.ts
+```typescript
+// create a formgroup instance
+registrationForm = new FormGroup({
+
+  // details of objects/controls present in html
+  userName: new FormControl('Dinanath'), // defult value enter in bracket with quotes
+  password: new FormControl(''),
+  confirmPassword: new FormControl(''),
+
+  // sub/nested formgroup
+  address: new FormGroup({
+      city: new FormControl('Mumbai'),
+      state: new FormControl('Maharashtra'),
+      postalcode: new FormControl(400001)
+  })
+
+});
+```
+
+> **Syntax & Example**: app.component.html
+```html
+<div class="container-fluid mb-5">
+  <h1>Registration Form</h1>
+  <hr />
+
+  <span class="lead"><strong>Forms/FormGroup Values : registrationForm.value :</strong></span> {{ registrationForm.value | json }} 
+
+  <hr />
+
+  <!-- associate the model with view -->
+  <form [formGroup]="registrationForm">
+
+  <!-- user name -->
+  <div class="form-group">
+      <label for="">Username:</label>
+      <input formControlName="userName" type="text" class="form-control">
+  </div>
+
+  <!-- password -->
+  <div class="form-group">
+      <label for="">Password:</label>
+      <input formControlName="password" type="password" class="form-control">
+  </div>
+
+  <!-- confirm password -->
+  <div class="form-group">
+      <label for="">Confirm Password:</label>
+      <input formControlName="confirmPassword" type="password" class="form-control">
+  </div>
+
+  <hr />
+
+  <h3>formGroupName="address: Nested FormGroup with child properties </h3>
+
+  <div formGroupName="address">
+
+    <div class="form-group">
+      <label for="">City:</label>
+      <input formControlName="city" type="text" class="form-control">
+    </div>
+
+    <div class="form-group">
+      <label for="">State:</label>
+      <input formControlName="state" type="text" class="form-control">
+    </div>
+
+    <div class="form-group">
+      <label for="">Postal Code:</label>
+      <input formControlName="postalcode" type="text" class="form-control">
+    </div>
+
+  </div>
+
+  <hr /> 
+
+  <!-- register button -->
+  <button class="btn btn-primary" type="submit">Register</button>
+
+  </form>
+
+</div>
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/05-01-01-form-nested-form-group.png" alt="Reactive Form - nested FormGroup" title="Reactive Form - nested FormGroup" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - nested FormGroup</figcaption>
+  </figure>
+</p>
+
+6 - Managing Control Values with SetValue() & PatchValue()
+=====================
+- Lets learn how to set FormControl values without any user interaction (set values programatically)
+- We can retrieve back-end data by an API/service and set/update the values of FormControl with `'setValue()'` and `'PatchValue()'` method
+- **`setValue()`** method works on FormGroup as well as FormControl class, But it accepts exact object structure which matches FormGroup with exact keys as FormControl, no custom deletion or addition of keys/properties allowed (will get an error). setValue is very strict with maintaining the structure of FormGroup - we must provide all FormControl values - we have to fill up/set the value of all the fields
+- **`patchValue`** method works on FormGroup as well as FormControl class, it accepts any fields - we can provide/pass value of any required field/few of the fields - we can fill up/set the value of only required fields
+- app.component.html: Create a button and kn app.component.ts: define methods:
+  - `<button class="btn btn-success ml-4" (click)="loadApiDataSetValue()">Load API Data <br/> SetValue() </button>`
+  - `<button class="btn btn-secondary ml-4" (click)="loadApiDataPatchValue()">Load API Data <br> PatchValue() </button>`
+
+> **Syntax & Example**: app.component.ts
+```typescript
+import { Component } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+
+export class AppComponent {
+
+  // create a formgroup instance
+  registrationForm = new FormGroup({
+
+    // details of objects/controls present in html
+    userName: new FormControl('Dinanath'), // defult value enter in bracket with quotes
+    password: new FormControl(''),
+    confirmPassword: new FormControl(''),
+
+    // sub/nested formgroup
+    address: new FormGroup({
+      city: new FormControl('Mumbai'),
+      state: new FormControl('Maharashtra'),
+      postalcode: new FormControl(400001)
+    })
+
+  });
+
+  loadApiDataSetValue() {
+    console.log('loadApiDataSetValue ');
+    
+    The// setValue method works on FormGroup as well as FormControl class, But it accepts exact object structure which matches FormGroup with exact keys as FormControl, no custom deletion or addition of keys/properties allowed (will get an error). setValue is very strict with maintaining the structure of FormGroup - we must provide all FormControl values - we have to fill up/set the value of all the fields
+
+    this.registrationForm.setValue({
+      userName: 'Angular',
+      password: 'Angular6', //error - password field required to match FormGroup
+      confirmPassword: 'Angular6',
+
+      address: {
+        city: 'Google',
+        state: 'Google Corp',
+        postalcode: 12345,
+      }
+    })
+  }
+
+  loadApiDataPatchValue() {
+    console.log('loadApiDataPatchValue ');
+    
+    // patch value method works on FormGroup as well as FormControl class, it accepts any fields - we can provide/pass the value of any required field/few of the fields - we can fill up/set the value of only required fields
+
+    this.registrationForm.patchValue({
+      // userName: 'React',
+      // password: 'React2',
+      // confirmPassword: 'React2',
+
+      address: {
+        city: 'Facebook',
+        state: 'Facebook Corp',
+        postalcode: 678901,
+      }
+    })
+  }
+}
+```
+
+> **Syntax & Example**: app.component.html
+```html
+<div class="container-fluid mb-5">
+    <h1>Registration Form</h1>
+    <hr />
+    
+    <span class="lead"><strong>Forms/FormGroup Values : registrationForm.value :</strong></span> {{ registrationForm.value | json }} 
+
+    <hr />
+    
+    <!-- associate the model with view -->
+    <form [formGroup]="registrationForm">
+
+    <!-- user name -->
+    <div class="form-group">
+        <label for="">Username:</label>
+        <input formControlName="userName" type="text" class="form-control">
+    </div>
+
+    <!-- password -->
+    <div class="form-group">
+        <label for="">Password:</label>
+        <input formControlName="password" type="password" class="form-control">
+    </div>
+
+    <!-- confirm password -->
+    <div class="form-group">
+        <label for="">Confirm Password:</label>
+        <input formControlName="confirmPassword" type="password" class="form-control">
+    </div>
+
+    <hr />
+
+    <h3>formGroupName="address: Nested FormGroup with child properties </h3>
+
+    <div formGroupName="address">
+
+      <div class="form-group">
+          <label for="">City:</label>
+          <input formControlName="city" type="text" class="form-control">
+      </div>
+
+      <div class="form-group">
+          <label for="">State:</label>
+          <input formControlName="state" type="text" class="form-control">
+      </div>
+
+      <div class="form-group">
+          <label for="">Postal Code:</label>
+          <input formControlName="postalcode" type="text" class="form-control">
+      </div>
+
+    </div>
+
+    <hr /> 
+
+    <!-- register button -->
+    <button class="btn btn-primary" type="submit">Register</button>
+
+    <button class="btn btn-success ml-4" (click)="loadApiDataSetValue()">Load API Data <br/> SetValue()
+    </button>
+
+    <button class="btn btn-secondary ml-4" (click)="loadApiDataPatchValue()">Load API Data <br/> PatchValue()
+    </button>
+
+  </form>
+
+</div>
+```
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/06-01-01-form-setvalue.png" alt="Reactive Form - setValue() method" title="Reactive Form - setValue() method" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - setValue() method</figcaption>
+  </figure>
+</p>
+
+<hr />
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/06-01-02-form-setvalue-error.png" alt="Reactive Form - setValue() method - error" title="Reactive Form - setValue() method - error" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - setValue() method - error</figcaption>
+  </figure>
+</p>
+
+<hr />
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/06-01-03-form-patchvalue.png" alt="Reactive Form - patchValue() method" title="Reactive Form - patchValue() method" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - patchValue() method</figcaption>
+  </figure>
+</p>
+
+
+7 - FormBuilder Service
+=====================
+- Creating multiple instances of FormControl classes (name/password/email/address fields) manually is pretty time consuming and repetitive
+- `FormBuilder` service provides/consists of methods to handle/generate FormControls dynamically with lesser code
+- `FormBuilder` is an alternate simpler service to create FormGroup and FormControls
+- Instead of FormGroup and FormControl import FormBuilder service and inject in the constructor
+- Comment all old properties related to FormGroup and FormControl and create new with FormBuilder instance 
+
+> **Syntax & Example**: app.component.ts
+```typescript
+// import { FormGroup, FormControl } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
+
+constructor(private fb: FormBuilder) { }
+
+  /* // create a formgroup instance
+  registrationForm = new FormGroup({
+
+    // details of objects/controls present in html
+    userName: new FormControl('Dinanath'), // defult value enter in bracket with quotes
+    password: new FormControl(''),
+    confirmPassword: new FormControl(''),
+
+    // sub/nested formgroup
+    address: new FormGroup({
+      city: new FormControl('Mumbai'),
+      state: new FormControl('Maharashtra'),
+      postalcode: new FormControl(400001)
+    })
+
+  }); */
+
+  // create a FormBuilder instance
+  registrationForm = this.fb.group({
+    userName: ['Dinanath Test Name with Form Builder'],
+    password: [''],
+    confirmPassword: [''],
+    address: this.fb.group({
+      city: ['Mumbai'],
+      state: ['Maharashtra'],
+      postalcode: [400001]
+    })
+  })
+```
+
+<p>
+  <figure>
+    &nbsp;&nbsp;&nbsp; <img src="./_images-angular-forms-reactivemodeldriven/07-01-01-formbuilder.png" alt="Reactive Form - FormBuilder" title="Reactive Form - FormBuilder" width="1000" border="2" />
+    <figcaption>&nbsp;&nbsp;&nbsp; Image - Reactive Form - FormBuilder</figcaption>
+  </figure>
+</p>
