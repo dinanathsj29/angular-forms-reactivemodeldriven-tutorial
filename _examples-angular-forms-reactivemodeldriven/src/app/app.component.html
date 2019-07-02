@@ -1,0 +1,123 @@
+<div class="container-fluid mb-5">
+  <h1>Registration Form</h1>
+  <hr />
+  
+  <!-- <span class="lead"><strong>Forms/FormGroup Values : registrationForm.value :</strong></span> {{ registrationForm.value | json }} 
+
+  <hr />  -->
+  
+  <!-- associate the model with view -->
+  <form [formGroup]="registrationForm" *ngIf="!isFormSubmitted" novalidate (ngSubmit)="onSubmit()">
+
+    <!-- user name -->
+    <div class="form-group">
+      <label for="">Username:</label>
+      <!-- class binding to show red border when form control/field is invalid -->
+      <!-- use getter method for userName control/field to keep code short in html file -->
+      <input [class.is-invalid]="userNameControl.invalid && 
+                                userNameControl.touched" formControlName="userName" type="text" class="form-control">
+      <!-- single error with a class binding -->
+      <!-- <small class="text-danger" [class.d-none]="userNameControl.valid ||                                                    userNameControl.untouched">* Name is required</small> -->
+
+      <!-- group or multiple error messages : error property -->
+      <div *ngIf="userNameControl.invalid && userNameControl.touched">
+        <small class="text-danger" *ngIf="userNameControl.errors?.required">* Name is required</small>
+        <small class="text-danger" *ngIf="userNameControl.errors?.minlength">* Name must be 3 characters</small>
+        <small class="text-danger" *ngIf="userNameControl.errors?.validateUserNameError">* '{{userNameControl.errors?.validateUserNameError.value}}' user name not allowed</small>
+      </div>
+    </div>
+
+    <!-- email -->
+    <div class="form-group">
+      <label for="">Email:</label>
+
+      <button type="button "class="btn btn-secondary btn-sm m-2" (click)="addAlternateEmailAddresses(); $event.preventDefault()">Add alternet Email</button>
+
+      <!-- class binding to show red border when form control/field is invalid -->
+      <input [class.is-invalid]="emailControl.invalid && 
+      emailControl.touched" formControlName="email" type="text" class="form-control">
+      
+      <!-- single error with a class binding -->
+      <small class="text-danger" [class.d-none]="emailControl.valid || emailControl.untouched">* Email is required</small>
+
+      <!-- dynamic emaiil fields to add-->
+      <div formArrayName="alternateEmailAddresses" *ngFor="let email of alternateEmailAddressesControl.controls; let i=index">
+        <input type="text" class="form-control my-2" [formControlName]="i">
+      </div>
+
+    </div>
+
+    <!-- subscribe checkbox -->
+    <div class="form-check mb-3">
+      <input formControlName="subscribe" type="checkbox" class="form-check-input">
+      <label for="" class="form-check-label">Subscribe/Send me promotion offers</label>
+    </div>
+
+    <!-- password -->
+    <div class="form-group">
+      <label for="">Password:</label>
+      <input formControlName="password" type="password" class="form-control">
+    </div>
+
+    <!-- confirm password -->
+    <div class="form-group">
+      <label for="">Confirm Password:</label>
+      
+      <!-- class binding to show red border when form control/field is invalid -->
+      <input [class.is-invalid]="registrationForm.errors?.passwordMisMatchError" formControlName="confirmPassword" type="password" class="form-control">
+      
+      <!-- single error with a class binding -->
+      <small class="text-danger" *ngIf="registrationForm.errors?.passwordMisMatchError">Confirm Password not matched!</small>
+    </div>
+
+    <hr />
+
+    <h3>formGroupName="address: Nested FormGroup with child properties </h3>
+
+    <div formGroupName="address">
+
+      <div class="form-group">
+        <label for="">City:</label>
+        <input formControlName="city" type="text" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="">State:</label>
+        <input formControlName="state" type="text" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="">Postal Code:</label>
+        <input formControlName="postalcode" type="text" class="form-control">
+      </div>
+
+    </div>
+
+    <hr /> 
+
+    <!-- register button -->
+    <button [disabled]="!registrationForm.valid" class="btn btn-primary" type="submit">Register</button>
+
+    <button class="btn btn-success ml-4" (click)="loadApiDataSetValue()">Load API Data <br/> SetValue()
+    </button>
+    
+    <button class="btn btn-secondary ml-4" (click)="loadApiDataPatchValue()">Load API Data <br/> PatchValue()
+    </button>
+
+  </form>
+
+</div>
+
+
+
+<!-- Form Builder Form 
+
+<hr /> <hr />
+
+<div class="container-fluid mb-5">
+
+  <app-form-builder></app-form-builder>
+  
+</div>
+
+-->
